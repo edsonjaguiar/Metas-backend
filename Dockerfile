@@ -28,6 +28,9 @@ COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/trigger.config.ts ./trigger.config.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
+COPY --from=builder /app/start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 EXPOSE 3000
 
-CMD ["bun", "run", "src/index.ts"]
+CMD ["./start.sh"]
