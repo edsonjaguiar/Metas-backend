@@ -21,7 +21,6 @@ ENV NODE_ENV=production
 # Copiar apenas o necessário
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src ./src
-COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/bun.ts ./bun.ts
 COPY --from=builder /app/compression-polyfill.ts ./compression-polyfill.ts
