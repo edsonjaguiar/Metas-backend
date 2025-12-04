@@ -21,6 +21,7 @@ ENV NODE_ENV=production
 # Copiar apenas o necessário
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src ./src
+COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/bun.ts ./bun.ts
 COPY --from=builder /app/compression-polyfill.ts ./compression-polyfill.ts
@@ -28,9 +29,6 @@ COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/trigger.config.ts ./trigger.config.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
-COPY --from=builder /app/start.sh ./start.sh
-RUN chmod +x ./start.sh
-
 EXPOSE 3000
 
-CMD ["./start.sh"]
+CMD ["bun", "start"]
