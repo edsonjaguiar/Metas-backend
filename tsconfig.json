@@ -1,0 +1,25 @@
+{
+	"compilerOptions": {
+		"lib": ["ESNext"],
+		"target": "ESNext",
+
+		// A combinação correta para CommonJS
+		"module": "CommonJS",
+		"moduleResolution": "Node",
+
+		// Configurações importantes de interoperabilidade e base
+		"esModuleInterop": true, // Essencial para importar módulos ESM em CommonJS
+		"allowSyntheticDefaultImports": true, // Permite importações padrão mais limpas
+		"forceConsistentCasingInFileNames": true,
+		"baseUrl": ".", // Necessário para que 'paths' funcione
+
+		// Suas outras configurações
+		"strict": true,
+		"jsx": "react-jsx",
+		"jsxImportSource": "hono/jsx",
+		"strictNullChecks": true,
+		"paths": {
+			"@/*": ["./src/*"]
+		}
+	}
+}

@@ -1,0 +1,51 @@
+services:
+    postgres:
+        image: postgres:17
+        container_name: metas-postgres
+        environment:
+            POSTGRES_DB: metas-db
+            POSTGRES_USER: docker
+            POSTGRES_PASSWORD: docker
+        ports:
+            - '5432:5432'
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        networks:
+            - metas-network
+
+    redis:
+        image: redis:7-alpine
+        container_name: metas-redis
+        ports:
+            - '6379:6379'
+        command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+        volumes:
+            - redis_data:/data
+        networks:
+            - metas-network
+
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: metas-app
+        environment:
+            NODE_ENV: production
+            DATABASE_URL: postgresql://docker:docker@postgres:5432/metas-db
+            REDIS_URL: redis://redis:6379
+        ports:
+            - '3000:3000'
+        depends_on:
+            - postgres
+            - redis
+        networks:
+            - metas-network
+        restart: unless-stopped
+
+volumes:
+    postgres_data:
+    redis_data:
+
+networks:
+    metas-network:
+        driver: bridge
