@@ -27,7 +27,10 @@ COPY --from=builder /app/compression-polyfill.ts ./compression-polyfill.ts
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/trigger.config.ts ./trigger.config.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
+
+RUN chmod +x ./docker-entrypoint.sh
 
 EXPOSE 3000
 
-CMD ["bun", "start"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
