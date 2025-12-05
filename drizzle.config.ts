@@ -8,6 +8,7 @@ export default {
 	dialect: "postgresql",
 	dbCredentials: {
 		url: env.DATABASE_URL,
+		ssl: env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 	},
 	casing: "snake_case",
 } satisfies Config
