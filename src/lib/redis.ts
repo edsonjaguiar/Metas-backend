@@ -6,20 +6,31 @@ let isConnected = false
 
 export const getRedisClient = (): Redis => {
 	if (!redis) {
-		const redisUrl = process.env.REDIS_URL || "redis://localhost:6379"
+		let redisUrl = process.env.REDIS_URL || "redis://localhost:6379"
+		
+		// Upstash requer conexão segura (TLS)
+		if (redisUrl.includes("upstash.io") && redisUrl.startsWith("redis://")) {
+			console.log("🔒 Upgrading Upstash connection to TLS (rediss://)")
+			redisUrl = redisUrl.replace("redis://", "rediss://")
+		}
 		
 		console.log("🔄 Connecting to Redis...")
 
 		redis = new Redis(redisUrl, {
-			maxRetriesPerRequest: 20, // Aumentar retries antes de falhar
-			family: 0, // Suporte a IPv4 e IPv6 (importante para Node 17+)
+			maxRetriesPerRequest: null, // Desabilitar limite para evitar crash em desconexão temporária
+			family: 0,
 			retryStrategy: (times) => {
 				const delay = Math.min(times * 100, 3000)
-				console.log(`⚠️  Redis retry attempt ${times}, waiting ${delay}ms`)
+				// Log apenas a cada 5 tentativas para não poluir
+				if (times % 5 === 0) console.log(`⚠️  Redis retry attempt ${times}, waiting ${delay}ms`)
 				return delay
 			},
 			lazyConnect: true,
-			enableOfflineQueue: false, // Fail fast se não conectado (mas tenta 20x antes)
+			enableOfflineQueue: true, // Permitir queue offline para resiliência
+			// Configurações específicas para TLS/Upstash
+			tls: redisUrl.startsWith("rediss://") ? {
+				rejectUnauthorized: false // Necessário para alguns provedores cloud
+			} : undefined
 		})
 
 		redis.on("error", (err) => {
