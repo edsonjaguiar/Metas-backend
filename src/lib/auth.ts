@@ -64,12 +64,10 @@ export const auth = betterAuth({
 		},
 	},
 
-	...(isProduction && {
-		cookies: {
-			sameSite: "none",
-			secure: true,
-		},
-	}),
+	cookies: {
+		sameSite: isProduction ? "none" : "lax",
+		secure: isProduction,
+	},
 
 	plugins: [openAPI()],
 })
