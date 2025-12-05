@@ -136,25 +136,26 @@ export const goalsService = {
 		startOfWeek.setDate(now.getDate() - dayOfWeek)
 		startOfWeek.setHours(0, 0, 0, 0)
 
-		// Verificar se a goal existe e pertence ao usuário
-		const goal = await goalsRepository.findById(goalId, userId)
+		// Buscar goal, completion de hoje e usuário em paralelo
+		const [goal, existingCompletionToday, currentUser] = await Promise.all([
+			goalsRepository.findById(goalId, userId),
+			goalCompletionsRepository.findTodayCompletion(goalId, userId),
+			usersRepository.findById(userId),
+		])
 
 		if (!goal) {
 			throw new Error("Goal not found")
 		}
 
-		// Verificar se já completou hoje
-		const existingCompletionToday =
-			await goalCompletionsRepository.findTodayCompletion(goalId, userId)
+		if (!currentUser) {
+			throw new Error("User not found")
+		}
 
 		// Se já completou hoje, remover completion (toggle off)
 		if (existingCompletionToday) {
 			await goalCompletionsRepository.delete(existingCompletionToday.id)
 
 			// Remover XP
-			const currentUser = await usersRepository.findById(userId)
-			if (!currentUser) throw new Error("User not found")
-
 			const xpResult = gamificationService.removeXp(
 				currentUser.experience,
 				currentUser.totalExperience,
@@ -163,10 +164,11 @@ export const goalsService = {
 				goal.xpReward,
 			)
 
-			await usersRepository.updateGamification(userId, xpResult)
-
-			// Invalidar caches
-			await cacheService.invalidateGoalCaches(userId)
+			// Atualizar usuário e invalidar cache em paralelo
+			await Promise.all([
+				usersRepository.updateGamification(userId, xpResult),
+				cacheService.invalidateGoalCaches(userId),
+			])
 
 			return { completed: false, xpLost: goal.xpReward }
 		}
@@ -187,10 +189,6 @@ export const goalsService = {
 
 		// Criar completion
 		await goalCompletionsRepository.create(goalId, userId)
-
-		// Buscar dados atuais do usuário
-		const currentUser = await usersRepository.findById(userId)
-		if (!currentUser) throw new Error("User not found")
 
 		// Calcular streak
 		const streakResult = gamificationService.calculateStreak(
@@ -214,21 +212,22 @@ export const goalsService = {
 			streakResult,
 		)
 
-		// Atualizar usuário
-		await usersRepository.updateGamification(userId, gamificationUpdate)
+		// Atualizar usuário e buscar contagem de completions em paralelo
+		const [, completionsCount] = await Promise.all([
+			usersRepository.updateGamification(userId, gamificationUpdate),
+			goalCompletionsRepository.countByUser(userId),
+		])
 
-		// Verificar novas conquistas
-		const completionsCount = await goalCompletionsRepository.countByUser(userId)
-
-		const newAchievements = await achievementsService.checkAndUnlock(userId, {
-			currentStreak: streakResult.currentStreak,
-			experience: xpResult.totalExperience, // Usar XP total!
-			level: xpResult.level,
-			goalsCompleted: completionsCount,
-		})
-
-		// Invalidar caches
-		await cacheService.invalidateGoalCaches(userId)
+		// Verificar novas conquistas e invalidar cache em paralelo
+		const [newAchievements] = await Promise.all([
+			achievementsService.checkAndUnlock(userId, {
+				currentStreak: streakResult.currentStreak,
+				experience: xpResult.totalExperience, // Usar XP total!
+				level: xpResult.level,
+				goalsCompleted: completionsCount,
+			}),
+			cacheService.invalidateGoalCaches(userId),
+		])
 
 		return {
 			completed: true,
