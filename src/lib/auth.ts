@@ -64,9 +64,14 @@ export const auth = betterAuth({
 		},
 	},
 
-	cookies: {
-		sameSite: isProduction ? "none" : "lax",
-		secure: isProduction,
+	...(isProduction && {
+		secureCookies: true,
+	}),
+
+	advanced: {
+		crossSubDomainCookies: {
+			enabled: isProduction,
+		},
 	},
 
 	plugins: [openAPI()],

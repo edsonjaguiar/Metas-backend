@@ -5,6 +5,8 @@ import { auth } from "./lib/auth"
 
 const app = new Hono()
 
+const isProduction = process.env.NODE_ENV === "production"
+
 app.use(
 	"/*",
 	cors({
@@ -15,8 +17,29 @@ app.use(
 	}),
 )
 
-app.on(["POST", "GET"], "/api/auth/**", (c) => {
-	return auth.handler(c.req.raw)
+app.on(["POST", "GET"], "/api/auth/**", async (c) => {
+	const response = await auth.handler(c.req.raw)
+	
+	// Em produção, modificar cookies para SameSite=None
+	if (isProduction) {
+		const setCookieHeaders = response.headers.getSetCookie()
+		if (setCookieHeaders.length > 0) {
+			// Remover headers Set-Cookie existentes
+			response.headers.delete("Set-Cookie")
+			
+			// Adicionar novamente com SameSite=None
+			for (const cookie of setCookieHeaders) {
+				// Substituir SameSite=Lax ou Strict por None
+				const modifiedCookie = cookie
+					.replace(/SameSite=(Lax|Strict)/gi, "SameSite=None")
+					.replace(/;(\s*)Secure/gi, "") + "; Secure"
+				
+				response.headers.append("Set-Cookie", modifiedCookie)
+			}
+		}
+	}
+	
+	return response
 })
 
 app.route("/api", routes)
