@@ -9,7 +9,7 @@ const isProduction = env.NODE_ENV === "production"
 
 export const auth = betterAuth({
 	baseURL: isProduction
-		? "https://metas-frontend.vercel.app"
+		? "https://metas-backend.onrender.com"
 		: "http://localhost:3000",
 
 	database: drizzleAdapter(db, {
