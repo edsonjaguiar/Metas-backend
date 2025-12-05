@@ -2,36 +2,51 @@ import Redis from "ioredis"
 
 // Singleton Redis client
 let redis: Redis | null = null
+let isConnected = false
 
 export const getRedisClient = (): Redis => {
 	if (!redis) {
 		const redisUrl = process.env.REDIS_URL || "redis://localhost:6379"
+		
+		console.log("🔄 Connecting to Redis...")
 
 		redis = new Redis(redisUrl, {
 			maxRetriesPerRequest: 3,
 			retryStrategy: (times) => {
 				const delay = Math.min(times * 50, 2000)
+				console.log(`⚠️  Redis retry attempt ${times}, waiting ${delay}ms`)
 				return delay
 			},
 			lazyConnect: true,
+			enableOfflineQueue: false, // Fail fast se não conectado
 		})
 
 		redis.on("error", (err) => {
-			console.error("Redis Client Error:", err)
+			console.error("❌ Redis Client Error:", err.message)
+			isConnected = false
 		})
 
 		redis.on("connect", () => {
-
+			console.log("✅ Redis connected successfully!")
+			isConnected = true
+		})
+		
+		redis.on("close", () => {
+			console.log("⚠️  Redis connection closed")
+			isConnected = false
 		})
 
 		// Conectar de forma assíncrona
 		redis.connect().catch((err) => {
-			console.error("Failed to connect to Redis:", err)
+			console.error("❌ Failed to connect to Redis:", err.message)
+			isConnected = false
 		})
 	}
 
 	return redis
 }
+
+export const isRedisConnected = () => isConnected
 
 // Helper para cache com TTL
 export const cache = {

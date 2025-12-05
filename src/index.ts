@@ -2,6 +2,7 @@ import { Hono } from "hono"
 import { cors } from "hono/cors"
 import routes from "./http/routes"
 import { auth } from "./lib/auth"
+import { isRedisConnected } from "./lib/redis"
 
 const app = new Hono()
 
@@ -44,5 +45,16 @@ app.on(["POST", "GET"], "/api/auth/**", async (c) => {
 
 app.route("/api", routes)
 app.get("/", (c) => c.text("API Running!"))
+
+// Health check endpoint
+app.get("/health", (c) => {
+	const redisStatus = isRedisConnected()
+	
+	return c.json({
+		status: "ok",
+		redis: redisStatus ? "connected" : "disconnected",
+		timestamp: new Date().toISOString(),
+	})
+})
 
 export default app
