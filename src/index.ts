@@ -27,12 +27,12 @@ app.on(["POST", "GET"], "/api/auth/**", async (c) => {
 			// Remover headers Set-Cookie existentes
 			response.headers.delete("Set-Cookie")
 			
-			// Adicionar novamente com SameSite=None
+			// Adicionar novamente com SameSite=None e Partitioned
 			for (const cookie of setCookieHeaders) {
-				// Substituir SameSite=Lax ou Strict por None
+				// Substituir SameSite=Lax ou Strict por None e adicionar Partitioned
 				const modifiedCookie = cookie
 					.replace(/SameSite=(Lax|Strict)/gi, "SameSite=None")
-					.replace(/;(\s*)Secure/gi, "") + "; Secure"
+					.replace(/;(\s*)Secure/gi, "") + "; Secure; Partitioned"
 				
 				response.headers.append("Set-Cookie", modifiedCookie)
 			}
