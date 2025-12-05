@@ -11,14 +11,15 @@ export const getRedisClient = (): Redis => {
 		console.log("🔄 Connecting to Redis...")
 
 		redis = new Redis(redisUrl, {
-			maxRetriesPerRequest: 3,
+			maxRetriesPerRequest: 20, // Aumentar retries antes de falhar
+			family: 0, // Suporte a IPv4 e IPv6 (importante para Node 17+)
 			retryStrategy: (times) => {
-				const delay = Math.min(times * 50, 2000)
+				const delay = Math.min(times * 100, 3000)
 				console.log(`⚠️  Redis retry attempt ${times}, waiting ${delay}ms`)
 				return delay
 			},
 			lazyConnect: true,
-			enableOfflineQueue: false, // Fail fast se não conectado
+			enableOfflineQueue: false, // Fail fast se não conectado (mas tenta 20x antes)
 		})
 
 		redis.on("error", (err) => {
