@@ -32,12 +32,24 @@ export const auth = betterAuth({
 
 	emailVerification: {
 		sendVerificationEmail: async ({ user, url }) => {
-			const fixedUrl = url.replace(
+			const frontendUrl = isProduction 
+				? "https://metas-frontend.vercel.app" 
+				: "http://localhost:5173"
+				
+			// Substituir a URL base do backend pela do frontend
+			const backendUrl = isProduction
+				? "https://metas-backend.onrender.com"
+				: "http://localhost:3000"
+				
+			let fixedUrl = url.replace(backendUrl, frontendUrl)
+			
+			// Garantir callback correto
+			fixedUrl = fixedUrl.replace(
 				"callbackURL=/",
 				"callbackURL=/goals-dashboard",
 			)
 
-			console.error("URL corrigida:", fixedUrl)
+			console.log("URL de verificação corrigida:", fixedUrl)
 
 			try {
 				await sendVerificationEmail({
@@ -45,7 +57,7 @@ export const auth = betterAuth({
 					userEmail: user.email,
 					verificationUrl: fixedUrl,
 				})
-				console.error("Email de verificação enviado para:", user.email)
+				console.log("Email de verificação enviado para:", user.email)
 			} catch (error) {
 				console.error("Erro ao enviar email:", error)
 				throw error
