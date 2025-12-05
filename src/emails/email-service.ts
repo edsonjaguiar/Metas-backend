@@ -48,7 +48,7 @@ export async function sendVerificationEmail(data: {
 
 		const sendSmtpEmail = new brevo.SendSmtpEmail()
 		sendSmtpEmail.sender = {
-			email: "edsonaj09@gmail.com",
+			email: "seuappdemetas@gmail.com",
 			name: "Metas App",
 		}
 		sendSmtpEmail.to = [{ email: data.userEmail, name: data.userName }]
