@@ -60,13 +60,23 @@ export const usersService = {
 	 * Atualizar perfil do usuário
 	 */
 	async updateProfile(userId: string, data: UpdateProfileData) {
-		// Se está atualizando a imagem, deletar a antiga da Cloudinary
-		if (data.image && data.cloudinaryPublicId) {
+		// Se está atualizando a imagem, tentar deletar a antiga
+		if (data.image) {
 			const currentUser = await usersRepository.findById(userId)
 
-			if (currentUser?.cloudinaryPublicId) {
-				// Deletar imagem antiga da Cloudinary (não bloqueia se falhar)
-				await deleteFromCloudinary(currentUser.cloudinaryPublicId)
+			if (currentUser?.image) {
+				// Tentar extrair o ID da URL antiga
+				// Isso evita depender do cliente enviar o ID correto ou de colunas legadas
+				const { extractPublicIdFromUrl } = await import("@/lib/cloudinary")
+				const publicId = extractPublicIdFromUrl(currentUser.image)
+
+				if (publicId) {
+					// Deletar imagem antiga da Cloudinary (não bloqueia se falhar)
+					// Executa em "background" para não atrasar a resposta
+					deleteFromCloudinary(publicId).catch((err) => 
+						console.error("Falha silenciosa ao deletar avatar antigo:", err)
+					)
+				}
 			}
 		}
 

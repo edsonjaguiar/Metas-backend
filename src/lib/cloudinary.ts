@@ -30,3 +30,25 @@ export async function deleteFromCloudinary(
 		return false
 	}
 }
+
+/**
+ * Extrai o public_id de uma URL do Cloudinary
+ * Suporta formatos com ou sem versionamento, e com pastas
+ */
+export function extractPublicIdFromUrl(url: string): string | null {
+	try {
+		// Regex para capturar o public_id
+		// Procura por /upload/ seguido opcionalmente de versão (v1234/) e captura tudo até o ponto da extensão
+		const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/
+		const match = url.match(regex)
+
+		if (match && match[1]) {
+			return match[1]
+		}
+		
+		return null
+	} catch (error) {
+		console.error("Erro ao extrair ID da URL:", error)
+		return null
+	}
+}
