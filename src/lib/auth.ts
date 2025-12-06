@@ -82,7 +82,7 @@ export const auth = betterAuth({
 
 	advanced: {
 		crossSubDomainCookies: {
-			enabled: isProduction,
+			enabled: false,
 		},
 		defaultCookieAttributes: {
 			sameSite: isProduction ? "none" : "lax",
