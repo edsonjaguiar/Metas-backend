@@ -14,7 +14,7 @@ export const usersService = {
 	async getProfile(userId: string) {
 		return await cacheService.getCached(
 			`user:${userId}`,
-			300, // 5 minutos
+			1800, // 30 minutos
 			async () => {
 				const user = await usersRepository.findById(userId)
 
@@ -104,7 +104,7 @@ export const usersService = {
 	): Promise<RankingResult> {
 		return await cacheService.getCached(
 			`ranking:v2:${category}`,
-			300, // 5 minutos
+			1800, // 30 minutos
 			async () => {
 				// Buscar top 50
 				const topUsers = await usersRepository.getRanking(category, 50)
