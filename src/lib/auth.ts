@@ -9,7 +9,7 @@ const isProduction = env.NODE_ENV === "production"
 
 export const auth = betterAuth({
 	baseURL: isProduction
-		? "https://metas-backend.onrender.com"
+		? "https://metas-frontend.vercel.app/api"
 		: "http://localhost:3000",
 
 	database: drizzleAdapter(db, {
@@ -82,10 +82,10 @@ export const auth = betterAuth({
 
 	advanced: {
 		crossSubDomainCookies: {
-			enabled: isProduction,
+			enabled: false,
 		},
 		defaultCookieAttributes: {
-			sameSite: isProduction ? "none" : "lax",
+			sameSite: "lax",
 			secure: isProduction,
 			httpOnly: true,
 		},
