@@ -37,13 +37,22 @@ export async function deleteFromCloudinary(
  */
 export function extractPublicIdFromUrl(url: string): string | null {
 	try {
-		// Regex para capturar o public_id
-		// Procura por /upload/ seguido opcionalmente de versão (v1234/) e captura tudo até o ponto da extensão
-		const regex = /\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z]+$/
-		const match = url.match(regex)
+		// Tentar encontrar o padrão de versão (v12345/) que é o divisor mais confiável
+		// URLs do Cloudinary geralmente são: .../upload/{transformations}/v{version}/{public_id}.{ext}
+		const versionRegex = /\/v\d+\/(.+)\.[a-zA-Z]+$/
+		const versionMatch = url.match(versionRegex)
 
-		if (match && match[1]) {
-			return match[1]
+		if (versionMatch && versionMatch[1]) {
+			return versionMatch[1]
+		}
+
+		// Fallback: Se não tiver versão, tentar pegar tudo após /upload/
+		// Nota: Isso pode falhar se tiver transformações sem versão, mas é um caso raro no nosso setup
+		const uploadRegex = /\/upload\/(?:[^/]+\/)*(?:v\d+\/)?(.+)\.[a-zA-Z]+$/
+		const uploadMatch = url.match(uploadRegex)
+
+		if (uploadMatch && uploadMatch[1]) {
+			return uploadMatch[1]
 		}
 		
 		return null
