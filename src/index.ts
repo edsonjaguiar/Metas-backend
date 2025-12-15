@@ -3,6 +3,8 @@ import { cors } from "hono/cors"
 import routes from "./http/routes"
 import { auth } from "./lib/auth"
 import { isRedisConnected } from "./lib/redis"
+import { env } from "./env"
+
 
 const app = new Hono()
 
@@ -33,7 +35,7 @@ app.on(["POST", "GET"], "/api/auth/**", async (c) => {
 				// Substituir SameSite=Lax ou Strict por None e adicionar Partitioned
 				const modifiedCookie = cookie
 					.replace(/SameSite=(Lax|Strict)/gi, "SameSite=None")
-					.replace(/;(\s*)Secure/gi, "") + "; Secure; Partitioned"
+					.replace(/;(\s*)Secure/gi, "") + "; Secure; Partitioned; Domain=" + new URL(env.FRONTEND_URL).hostname
 				
 				response.headers.append("Set-Cookie", modifiedCookie)
 			}
