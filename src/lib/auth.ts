@@ -36,14 +36,11 @@ export const auth = betterAuth({
 				? "https://metas-frontend.vercel.app" 
 				: "http://localhost:5173"
 				
-			// Substituir a URL base do backend pela do frontend
 			const backendUrl = isProduction
 				? "https://metas-backend.onrender.com"
 				: "http://localhost:3000"
 				
 			let fixedUrl = url.replace(backendUrl, frontendUrl)
-			
-			// Garantir callback correto
 			fixedUrl = fixedUrl.replace(
 				"callbackURL=/",
 				"callbackURL=/goals-dashboard",
@@ -69,10 +66,14 @@ export const auth = betterAuth({
 	},
 
 	session: {
-		expiresIn: 60 * 60 * 24 * 7,
+		// Sessão dura 30 dias
+		expiresIn: 60 * 60 * 24 * 30,
+		// Atualiza a sessão automaticamente antes de expirar
+		updateAge: 60 * 60 * 24, // Atualiza a cada 24h de uso
 		cookieCache: {
 			enabled: true,
-			maxAge: 60 * 5,
+			// Cache dura 30 minutos (não 5 minutos)
+			maxAge: 60 * 30,
 		},
 	},
 
@@ -89,6 +90,8 @@ export const auth = betterAuth({
 			secure: isProduction,
 			httpOnly: true,
 		},
+		// Desabilita redirect automático para login
+		useSecureCookies: isProduction,
 	},
 
 	plugins: [openAPI()],
