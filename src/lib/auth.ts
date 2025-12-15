@@ -36,11 +36,14 @@ export const auth = betterAuth({
 				? "https://metas-frontend.vercel.app" 
 				: "http://localhost:5173"
 				
+			// Substituir a URL base do backend pela do frontend
 			const backendUrl = isProduction
 				? "https://metas-backend.onrender.com"
 				: "http://localhost:3000"
 				
 			let fixedUrl = url.replace(backendUrl, frontendUrl)
+			
+			// Garantir callback correto
 			fixedUrl = fixedUrl.replace(
 				"callbackURL=/",
 				"callbackURL=/goals-dashboard",
@@ -90,8 +93,6 @@ export const auth = betterAuth({
 			secure: isProduction,
 			httpOnly: true,
 		},
-		// Desabilita redirect automático para login
-		useSecureCookies: isProduction,
 	},
 
 	plugins: [openAPI()],
