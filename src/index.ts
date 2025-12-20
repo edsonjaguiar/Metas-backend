@@ -4,21 +4,38 @@ import routes from "./http/routes"
 import { auth } from "./lib/auth"
 import { isRedisConnected } from "./lib/redis"
 import { env } from "./env"
+import { securityHeaders, hideServerInfo } from "./http/middlewares/security-headers.middleware"
+import { authRateLimiter, apiRateLimiter } from "./http/middlewares/rate-limit.middleware"
 
 
 const app = new Hono()
 
 const isProduction = process.env.NODE_ENV === "production"
 
+// ===================
+// Security Middlewares (aplicados a todas as rotas)
+// ===================
+// Headers de segurança OWASP
+app.use("/*", securityHeaders())
+
+// Remove headers que expõem informações do servidor
+app.use("/*", hideServerInfo())
+
+// CORS configurado
 app.use(
 	"/*",
 	cors({
 		origin: process.env.FRONTEND_URL || "http://localhost:5173",
 		credentials: true,
 		allowHeaders: ["Content-Type", "Authorization", "Cookie"],
-		exposeHeaders: ["Set-Cookie"],
+		exposeHeaders: ["Set-Cookie", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
 	}),
 )
+
+// ===================
+// Auth endpoints (com rate limiting mais restritivo)
+// ===================
+app.use("/api/auth/*", authRateLimiter)
 
 app.on(["POST", "GET"], "/api/auth/**", async (c) => {
 	const response = await auth.handler(c.req.raw)
@@ -45,10 +62,17 @@ app.on(["POST", "GET"], "/api/auth/**", async (c) => {
 	return response
 })
 
+// ===================
+// API Routes (com rate limiting geral)
+// ===================
+app.use("/api/*", apiRateLimiter)
 app.route("/api", routes)
+
+// ===================
+// Health check (sem rate limiting)
+// ===================
 app.get("/", (c) => c.text("API Running!"))
 
-// Health check endpoint
 app.get("/health", (c) => {
 	const redisStatus = isRedisConnected()
 	
@@ -60,3 +84,4 @@ app.get("/health", (c) => {
 })
 
 export default app
+
