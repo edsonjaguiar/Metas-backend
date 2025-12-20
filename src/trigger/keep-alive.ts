@@ -21,19 +21,23 @@ export const keepAlive = schedules.task({
 		try {
 			await db.execute(sql`SELECT 1`)
 			results.db = true
+			console.log("[KeepAlive] Neon DB ping: OK")
 		} catch (error) {
 			console.error("[KeepAlive] Neon DB ping failed:", error)
 		}
 
 		// 2. Ping HTTP no servidor Render (health endpoint)
+		// IMPORTANTE: Usar BACKEND_URL (Render), não FRONTEND_URL (Vercel)
 		try {
-			const serverUrl = env.FRONTEND_URL || "http://localhost:3000"
-			// Faz um request simples para manter o servidor acordado
-			const response = await fetch(`${serverUrl}/api/health`, {
+			const backendUrl = env.BACKEND_URL || "http://localhost:3000"
+			console.log(`[KeepAlive] Pinging backend at: ${backendUrl}/health`)
+			
+			const response = await fetch(`${backendUrl}/health`, {
 				method: "GET",
 				headers: { "User-Agent": "TriggerDev-KeepAlive" },
 			})
 			results.server = response.ok
+			console.log(`[KeepAlive] Render server ping: ${response.ok ? 'OK' : 'FAILED'}`)
 		} catch (error) {
 			console.error("[KeepAlive] Render server ping failed:", error)
 		}
@@ -41,3 +45,4 @@ export const keepAlive = schedules.task({
 		return { success: results.db && results.server, ...results }
 	},
 })
+
