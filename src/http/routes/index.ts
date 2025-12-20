@@ -12,4 +12,12 @@ routes.route("/users", usersRoutes)
 routes.route("/achievements", achievementsRoutes)
 // routes.route("/auth", authRoutes)
 
+// Health check endpoint para keep-alive do Trigger.dev
+routes.get("/health", (c) => {
+	return c.json({
+		status: "ok",
+		timestamp: new Date().toISOString(),
+	})
+})
+
 export default routes
