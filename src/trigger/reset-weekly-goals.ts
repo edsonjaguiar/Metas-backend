@@ -35,11 +35,19 @@ export async function resetWeeklyGoalsLogic() {
 	}
 }
 
-// Task do Trigger.dev v4 usando schedules.task()
+// Task do Trigger.dev usando schedules.task()
 export const resetWeeklyGoals = schedules.task({
 	id: "reset-weekly-goals",
+	// Rodar todo sábado às 00:00 (horário de São Paulo)
+	cron: {
+		pattern: "0 0 * * 6", // 6 = sábado
+		timezone: "America/Sao_Paulo",
+	},
 	run: async (payload) => {
-
-		return await resetWeeklyGoalsLogic()
+		console.log("[ResetWeeklyGoals] Iniciando reset semanal...")
+		const result = await resetWeeklyGoalsLogic()
+		console.log(`[ResetWeeklyGoals] Completado: ${result.message}`)
+		return result
 	},
 })
+
