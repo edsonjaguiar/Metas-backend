@@ -5,9 +5,11 @@ import { env } from "@/env"
 
 export const keepAlive = schedules.task({
 	id: "keep-alive",
-	// Rodar a cada 4 minutos para evitar cold start do Neon (5min) e Render (15min)
+	// Rodar a cada 14 minutos para economizar compute do Neon
+	// Render dorme após 15min, então 14min mantém ele acordado
+	// Neon pode ter cold start ocasional (1-2s) - aceitável
 	cron: {
-		pattern: "*/4 * * * *",
+		pattern: "*/14 * * * *",
 		timezone: "America/Sao_Paulo",
 	},
 	run: async (payload) => {
