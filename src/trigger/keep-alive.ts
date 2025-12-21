@@ -20,10 +20,12 @@ export const keepAlive = schedules.task({
 		}
 
 		// 1. Ping no banco Neon
+		// DESATIVADO: Economia de compute (Emergency Mode)
+		// O banco vai dormir, mas economizamos os 0.7% restantes de cota.
 		try {
-			await db.execute(sql`SELECT 1`)
-			results.db = true
-			console.log("[KeepAlive] Neon DB ping: OK")
+			// await db.execute(sql`SELECT 1`)
+			// results.db = true
+			console.log("[KeepAlive] Neon DB ping: SKIPPED (Economy Mode)")
 		} catch (error) {
 			console.error("[KeepAlive] Neon DB ping failed:", error)
 		}
