@@ -37,25 +37,40 @@ export async function deleteFromCloudinary(
  */
 export function extractPublicIdFromUrl(url: string): string | null {
 	try {
-		// Tentar encontrar o padrão de versão (v12345/) que é o divisor mais confiável
-		// URLs do Cloudinary geralmente são: .../upload/{transformations}/v{version}/{public_id}.{ext}
+		// 1. Remover query strings (ex: ?t=123...)
+		const baseUrl = url.split('?')[0]
+
+		// 2. Tentar encontrar o padrão de versão (v12345/) que é o divisor mais confiável
+		// URLs: .../upload/{transformations}/v{version}/{public_id}.{ext}
 		const versionRegex = /\/v\d+\/(.+)\.[a-zA-Z]+$/
-		const versionMatch = url.match(versionRegex)
+		const versionMatch = baseUrl.match(versionRegex)
 
 		if (versionMatch && versionMatch[1]) {
 			return versionMatch[1]
 		}
 
-		// Fallback: Se não tiver versão, tentar pegar tudo após /upload/
-		// Nota: Isso pode falhar se tiver transformações sem versão, mas é um caso raro no nosso setup
-		const uploadRegex = /\/upload\/(?:[^/]+\/)*(?:v\d+\/)?(.+)\.[a-zA-Z]+$/
-		const uploadMatch = url.match(uploadRegex)
+		// 3. Fallback: Se não tiver versão, pegar tudo após o último par de barras que segue /upload/
+		// O Cloudinary permite múltiplas transformações separadas por barra: /upload/c_crop,x_0/w_400/v1/id
+		const parts = baseUrl.split('/upload/')
+		if (parts.length < 2) return null
 
-		if (uploadMatch && uploadMatch[1]) {
-			return uploadMatch[1]
-		}
+		// Pegar a parte após /upload/
+		const afterUpload = parts[parts.length - 1]
 		
-		return null
+		// O ID é o que vem depois da última barra (se houver v123/ ou transformações/)
+		// e antes da extensão
+		const segments = afterUpload.split('/')
+		const lastSegment = segments[segments.length - 1]
+		
+		// Remover extensão
+		const publicIdWithPossibleSubfolders = afterUpload.replace(/\.[a-zA-Z]+$/, '')
+		
+		// Se houver subpastas ou v123, precisamos ser cuidadosos.
+		// No nosso caso simplificado, se não deu match no regex de versão, 
+		// vamos tentar remover prefixos comuns de transformação conhecidos ou simplesmente pegar o último
+		const result = publicIdWithPossibleSubfolders.split('/').filter(s => !s.includes('_') && !/^v\d+$/.test(s)).join('/')
+
+		return result || lastSegment.split('.')[0]
 	} catch (error) {
 		console.error("Erro ao extrair ID da URL:", error)
 		return null

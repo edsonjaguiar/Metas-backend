@@ -64,17 +64,15 @@ export const usersService = {
 		if (data.image) {
 			const currentUser = await usersRepository.findById(userId)
 
-			if (currentUser?.image) {
-				// Tentar extrair o ID da URL antiga
-				// Isso evita depender do cliente enviar o ID correto ou de colunas legadas
-				const { extractPublicIdFromUrl } = await import("@/lib/cloudinary")
-				const publicId = extractPublicIdFromUrl(currentUser.image)
+			if (currentUser) {
+				// 1. Tentar usar o publicId guardado explicitamente no banco
+				// 2. Fallback para extrair da URL antiga
+				const imageToDelete = currentUser.cloudinaryPublicId || (currentUser.image ? (await import("@/lib/cloudinary")).extractPublicIdFromUrl(currentUser.image) : null)
 
-				if (publicId) {
+				if (imageToDelete) {
 					// Deletar imagem antiga da Cloudinary (não bloqueia se falhar)
-					// Executa em "background" para não atrasar a resposta
-					deleteFromCloudinary(publicId).catch((err) => 
-						console.error("Falha silenciosa ao deletar avatar antigo:", err)
+					deleteFromCloudinary(imageToDelete).catch((err) => 
+						console.error(`Falha ao deletar avatar antigo (${imageToDelete}):`, err)
 					)
 				}
 			}
