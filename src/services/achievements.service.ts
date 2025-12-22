@@ -14,7 +14,7 @@ export const achievementsService = {
 	async listUserAchievements(userId: string) {
 		// Tentar buscar do cache
 		return await cacheService.getCached(
-			`achievements:${userId}`,
+			`achievements:v4:${userId}`,
 			600, // 10 minutos
 			async () => {
 				// Buscar achievements desbloqueadas

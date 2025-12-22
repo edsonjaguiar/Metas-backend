@@ -10,6 +10,7 @@ async function seedAchievements() {
 	console.log("🏆 Seeding achievements...")
 	
 	for (const achievement of ACHIEVEMENTS) {
+		console.log(`Checking achievement: ${achievement.id}`)
 		await db
 			.insert(achievements)
 			.values({
@@ -21,7 +22,17 @@ async function seedAchievements() {
 				criteriaType: achievement.category.toUpperCase(),
 				criteriaValue: achievement.requirement,
 			})
-			.onConflictDoNothing()
+			.onConflictDoUpdate({
+				target: achievements.id,
+				set: {
+					name: achievement.title,
+					description: achievement.description,
+					icon: achievement.icon,
+					criteriaType: achievement.category.toUpperCase(),
+					criteriaValue: achievement.requirement,
+					updatedAt: new Date(),
+				}
+			})
 	}
 	
 	console.log(`✨ Seeded ${ACHIEVEMENTS.length} achievements successfully!`)
