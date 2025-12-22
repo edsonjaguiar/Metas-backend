@@ -1,5 +1,5 @@
 import { randomUUIDv7 } from "bun"
-import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core"
 import { users } from "./users"
 
 export const goals = pgTable("goals", {
@@ -17,4 +17,8 @@ export const goals = pgTable("goals", {
 		.defaultNow()
 		.$onUpdate(() => new Date())
 		.notNull(),
+}, (table) => {
+	return {
+		userIdIdx: index("goals_user_id_idx").on(table.userId),
+	}
 })

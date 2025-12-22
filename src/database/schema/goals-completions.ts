@@ -1,5 +1,5 @@
 import { randomUUIDv7 } from "bun"
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { index, pgTable, text, timestamp } from "drizzle-orm/pg-core"
 import { goals } from "./goals"
 import { users } from "./users"
 
@@ -15,4 +15,9 @@ export const goalCompletions = pgTable("goal_completions", {
 		.references(() => users.id, { onDelete: "cascade" }),
 	completedAt: timestamp("completed_at").defaultNow().notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => {
+	return {
+		goalIdIdx: index("goal_completions_goal_id_idx").on(table.goalId),
+		userIdIdx: index("goal_completions_user_id_idx").on(table.userId),
+	}
 })
