@@ -6,7 +6,6 @@ import { isRedisConnected } from "./lib/redis"
 import { env } from "./env"
 import { securityHeaders, hideServerInfo } from "./http/middlewares/security-headers.middleware"
 import { authRateLimiter, apiRateLimiter } from "./http/middlewares/rate-limit.middleware"
-import { migrateGoalsCount } from "./migrate-goals-count"
 
 
 const app = new Hono()
@@ -83,9 +82,6 @@ app.get("/health", (c) => {
 		timestamp: new Date().toISOString(),
 	})
 })
-
-// Executar migração de contador de metas no startup (Opção 3 do usuário)
-migrateGoalsCount().catch(err => console.error("Falha ao sincronizar metas no startup:", err))
 
 export default app
 
