@@ -13,7 +13,7 @@ export const usersService = {
 	 */
 	async getProfile(userId: string) {
 		return await cacheService.getCached(
-			`user:${userId}`,
+			`user:v2:${userId}`,
 			1800, // 30 minutos
 			async () => {
 				const user = await usersRepository.findById(userId)
@@ -21,10 +21,6 @@ export const usersService = {
 				if (!user) {
 					throw new Error("User not found")
 				}
-
-				// Contar total de goal completions
-				const completionsCount =
-					await goalCompletionsRepository.countByUser(userId)
 
 				// Calcular streak efetivo para exibição
 				let currentStreak = user.currentStreak
@@ -50,7 +46,6 @@ export const usersService = {
 				return {
 					...user,
 					currentStreak,
-					completedGoals: completionsCount,
 				}
 			},
 		)

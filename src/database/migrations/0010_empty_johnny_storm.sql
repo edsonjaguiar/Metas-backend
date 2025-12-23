@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "completed_goals" integer DEFAULT 0 NOT NULL;

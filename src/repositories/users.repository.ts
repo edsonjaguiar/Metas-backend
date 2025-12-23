@@ -56,32 +56,20 @@ export const usersRepository = {
 		}
 
 		const rankingQuery = sql`
-			WITH user_goals_count AS (
-				SELECT 
-					${users.id} as user_id, 
-					COUNT(${goalCompletions.id}) as completed_goals
-				FROM ${users}
-				LEFT JOIN ${goalCompletions} ON ${goalCompletions.userId} = ${users.id}
-				GROUP BY ${users.id}
-			),
-			ranked_users AS (
-				SELECT
-					${users.id},
-					${users.name},
-					${users.image},
-					${users.level},
-					${users.experience},
-					${users.currentStreak},
-					COALESCE(ugc.completed_goals, 0) as completed_goals,
-					RANK() OVER (
-						ORDER BY 
-							${orderByClause},
-							COALESCE(ugc.completed_goals, 0) DESC
-					) as position
-				FROM ${users}
-				LEFT JOIN user_goals_count ugc ON ugc.user_id = ${users.id}
-			)
-			SELECT * FROM ranked_users
+			SELECT
+				${users.id},
+				${users.name},
+				${users.image},
+				${users.level},
+				${users.experience},
+				${users.currentStreak},
+				${users.completedGoals},
+				RANK() OVER (
+					ORDER BY 
+						${orderByClause},
+						${users.completedGoals} DESC
+				) as position
+			FROM ${users}
 		`
 
 		const result = await db.execute(sql`
@@ -112,15 +100,7 @@ export const usersRepository = {
 		}
 
 		const rankingQuery = sql`
-			WITH user_goals_count AS (
-				SELECT 
-					${users.id} as user_id, 
-					COUNT(${goalCompletions.id}) as completed_goals
-				FROM ${users}
-				LEFT JOIN ${goalCompletions} ON ${goalCompletions.userId} = ${users.id}
-				GROUP BY ${users.id}
-			),
-			ranked_users AS (
+			WITH ranked_users AS (
 				SELECT
 					${users.id},
 					${users.name},
@@ -128,14 +108,13 @@ export const usersRepository = {
 					${users.level},
 					${users.experience},
 					${users.currentStreak},
-					COALESCE(ugc.completed_goals, 0) as completed_goals,
+					${users.completedGoals},
 					RANK() OVER (
 						ORDER BY 
 							${orderByClause},
-							COALESCE(ugc.completed_goals, 0) DESC
+							${users.completedGoals} DESC
 					) as position
 				FROM ${users}
-				LEFT JOIN user_goals_count ugc ON ugc.user_id = ${users.id}
 			)
 			SELECT * FROM ranked_users
 			WHERE id = ${userId}

@@ -46,10 +46,11 @@ export interface UserStats {
 }
 
 export interface GamificationUpdate {
-	experience: number
-	totalExperience: number
-	level: number
-	experienceToNextLevel: number
+	experience?: number
+	totalExperience?: number
+	level?: number
+	experienceToNextLevel?: number
+	completedGoals?: number
 	currentStreak?: number
 	longestStreak?: number
 	lastInteractionDate?: Date

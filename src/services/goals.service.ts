@@ -92,11 +92,11 @@ export const goalsService = {
 		// Calcular XP perdido
 		const xpLost = completionsThisWeek.length * goal.xpReward
 
-		// Atualizar XP do usuário se necessário
-		if (xpLost > 0) {
-			const currentUser = await usersRepository.findById(userId)
-			if (!currentUser) throw new Error("User not found")
+		// Atualizar XP e contador de metas do usuário
+		const currentUser = await usersRepository.findById(userId)
+		if (!currentUser) throw new Error("User found")
 
+		if (xpLost > 0) {
 			const xpResult = gamificationService.removeXp(
 				currentUser.experience,
 				currentUser.totalExperience,
@@ -105,7 +105,15 @@ export const goalsService = {
 				xpLost,
 			)
 
-			await usersRepository.updateGamification(userId, xpResult)
+			await usersRepository.updateGamification(userId, {
+				...xpResult,
+				completedGoals: Math.max(0, (currentUser.completedGoals || 0) - completionsThisWeek.length)
+			})
+		} else {
+			// Mesmo que não tenha XP perdido, precisamos atualizar o contador de metas completadas
+			await usersRepository.updateGamification(userId, {
+				completedGoals: Math.max(0, (currentUser.completedGoals || 0) - completionsThisWeek.length)
+			})
 		}
 
 		// Deletar completions e goal
@@ -155,7 +163,7 @@ export const goalsService = {
 		if (existingCompletionToday) {
 			await goalCompletionsRepository.delete(existingCompletionToday.id)
 
-			// Remover XP
+			// Remover XP e atualizar contador de metas
 			const xpResult = gamificationService.removeXp(
 				currentUser.experience,
 				currentUser.totalExperience,
@@ -166,7 +174,10 @@ export const goalsService = {
 
 			// Atualizar usuário e invalidar cache em paralelo
 			await Promise.all([
-				usersRepository.updateGamification(userId, xpResult),
+				usersRepository.updateGamification(userId, {
+					...xpResult,
+					completedGoals: Math.max(0, (currentUser.completedGoals || 0) - 1)
+				}),
 				cacheService.invalidateGoalCaches(userId),
 			])
 
@@ -210,6 +221,7 @@ export const goalsService = {
 		const gamificationUpdate = gamificationService.prepareGamificationUpdate(
 			xpResult,
 			streakResult,
+			(currentUser.completedGoals || 0) + 1
 		)
 
 		// Atualizar usuário e buscar contagem de completions em paralelo

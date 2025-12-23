@@ -156,12 +156,17 @@ export const gamificationService = {
 	prepareGamificationUpdate(
 		xpResult: XpCalculationResult,
 		streakResult?: StreakCalculationResult,
+		completedGoals?: number,
 	): GamificationUpdate {
 		const update: GamificationUpdate = {
 			experience: xpResult.experience,
 			totalExperience: xpResult.totalExperience,
 			level: xpResult.level,
 			experienceToNextLevel: xpResult.experienceToNextLevel,
+		}
+
+		if (completedGoals !== undefined) {
+			update.completedGoals = completedGoals
 		}
 
 		if (streakResult?.shouldUpdate) {

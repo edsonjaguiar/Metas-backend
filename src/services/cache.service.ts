@@ -9,9 +9,9 @@ export const cacheService = {
 	 */
 	async invalidateUserCaches(userId: string): Promise<void> {
 		await Promise.all([
-			cache.del(`user:${userId}`),
+			cache.del(`user:v2:${userId}`),
 			cache.delPattern(`progress:*:${userId}:*`),
-			cache.del(`achievements:${userId}`),
+			cache.del(`achievements:v4:${userId}`),
 		])
 	},
 

@@ -71,6 +71,13 @@
       "when": 1766433202561,
       "tag": "0009_milky_roughhouse",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1766526351896,
+      "tag": "0010_empty_johnny_storm",
+      "breakpoints": true
     }
   ]
 }

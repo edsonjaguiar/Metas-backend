@@ -25,6 +25,7 @@
     "db:migrate": "bun --env-file .env --bun drizzle-kit migrate",
     "db:seed": "bun --env-file .env src/seed.ts",
     "db:seed:achievements": "bun --env-file .env src/seed-achievements.ts",
+    "db:sync:goals": "bun --env-file .env src/migrate-goals-count.ts",
     "db:studio": "bun run --bun drizzle-kit studio",
     "dev": "bun run --hot src/index.ts",
     "start": "bun run src/index.ts",
