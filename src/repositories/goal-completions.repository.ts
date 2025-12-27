@@ -1,6 +1,15 @@
 import { and, eq, sql } from "drizzle-orm"
 import { db } from "@/database/client"
 import { goalCompletions } from "@/database/schema/goals-completions"
+import dayjs from "dayjs"
+import utc from "dayjs/plugin/utc"
+import timezone from "dayjs/plugin/timezone"
+
+// Configurar dayjs com timezone
+dayjs.extend(utc)
+dayjs.extend(timezone)
+
+const TIMEZONE = "America/Sao_Paulo"
 
 /**
  * Goal Completions Repository - Acesso ao banco de dados para completions
@@ -19,23 +28,22 @@ export const goalCompletionsRepository = {
 	},
 
 	/**
-	 * Buscar completion de hoje
+	 * Buscar completion de hoje (usando timezone do Brasil)
 	 */
 	async findTodayCompletion(goalId: string, userId: string) {
 		const allCompletions = await this.findByGoalAndUser(goalId, userId)
 
-		const today = new Date()
-		today.setHours(0, 0, 0, 0)
+		// Usar timezone do Brasil para definir "hoje"
+		const todayStr = dayjs().tz(TIMEZONE).format("YYYY-MM-DD")
 
 		return allCompletions.find((c) => {
-			const completionDate = new Date(c.completedAt)
-			completionDate.setHours(0, 0, 0, 0)
-			return completionDate.getTime() === today.getTime()
+			const completionDateStr = dayjs(c.completedAt).tz(TIMEZONE).format("YYYY-MM-DD")
+			return completionDateStr === todayStr
 		})
 	},
 
 	/**
-	 * Buscar completions da semana
+	 * Buscar completions da semana (usando timezone do Brasil)
 	 */
 	async findWeekCompletions(
 		goalId: string,
@@ -44,9 +52,12 @@ export const goalCompletionsRepository = {
 	) {
 		const allCompletions = await this.findByGoalAndUser(goalId, userId)
 
+		// Converter startOfWeek para string no timezone do Brasil para comparação consistente
+		const startOfWeekStr = dayjs(startOfWeek).tz(TIMEZONE).format("YYYY-MM-DD")
+
 		return allCompletions.filter((c) => {
-			const completionDate = new Date(c.completedAt)
-			return completionDate >= startOfWeek
+			const completionDateStr = dayjs(c.completedAt).tz(TIMEZONE).format("YYYY-MM-DD")
+			return completionDateStr >= startOfWeekStr
 		})
 	},
 
