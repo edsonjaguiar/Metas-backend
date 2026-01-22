@@ -56,8 +56,14 @@ export async function checkStreakExpirationLogic() {
 // Task do Trigger.dev v4 usando schedules.task()
 export const checkStreakExpiration = schedules.task({
 	id: "check-streak-expiration",
+	cron: {
+		pattern: "0 18 * * *", // Todo dia às 18:00
+		timezone: "America/Sao_Paulo",
+	},
 	run: async (payload) => {
-
-		return await checkStreakExpirationLogic()
+		console.log("[CheckStreakExpiration] Verificando streaks em risco...")
+		const result = await checkStreakExpirationLogic()
+		console.log(`[CheckStreakExpiration] Resultado: ${result.message}`)
+		return result
 	},
 })
